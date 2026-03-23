@@ -90,16 +90,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setIsLoading(true);
             setError(null);
 
+            const { data: sessionData } = await supabase.auth.getSession();
+            const accessToken = sessionData.session?.access_token;
+
+            // If Supabase already has a session, sync backend login first so /auth/me does not refresh prematurely.
+            if (accessToken) {
+                try {
+                    const syncedUser = await applySupabaseUser(accessToken);
+                    if (isMounted) {
+                        setUser(syncedUser);
+                    }
+                    return;
+                } catch (syncError) {
+                    if (isMounted) {
+                        setUser(null);
+                        setError(getReadableAuthError(syncError));
+                    }
+                    return;
+                } finally {
+                    if (isMounted) {
+                        setIsLoading(false);
+                    }
+                }
+            }
+
             try {
                 const currentUser = await fetchCurrentUser();
                 if (isMounted) {
                     setUser(currentUser);
                 }
             } catch {
-                const [{ data, error: getUserError }, { data: sessionData }] = await Promise.all([
-                    supabase.auth.getUser(),
-                    supabase.auth.getSession(),
-                ]);
+                const { data, error: getUserError } = await supabase.auth.getUser();
 
                 if (!isMounted) {
                     return;
@@ -110,8 +131,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     return;
                 }
 
+                const { data: latestSessionData } = await supabase.auth.getSession();
+
                 try {
-                    const syncedUser = await applySupabaseUser(sessionData.session?.access_token);
+                    const syncedUser = await applySupabaseUser(latestSessionData.session?.access_token);
                     if (isMounted) {
                         setUser(syncedUser);
                     }
