@@ -1,0 +1,26 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+    --font-sans: "Sora", "Segoe UI", sans-serif;
+}
+
+@layer base {
+    * {
+        @apply border-slate-800;
+    }
+
+    html,
+    body,
+    #root {
+        min-height: 100%;
+        width: 100%;
+    }
+
+    body {
+        margin: 0;
+        overflow-x: hidden;
+        @apply bg-slate-950 text-slate-100 antialiased;
+    }
+}
+
