@@ -130,13 +130,7 @@ const ClassroomSelector = ({ classroomNames, selectedClassroom, onChange }: Clas
     </div>
 );
 
-const RoomFacingIndicator = ({
-    classroomName,
-    isPdfMode = false,
-}: {
-    classroomName: string;
-    isPdfMode?: boolean;
-}) => {
+const RoomFacingIndicator = ({ isPdfMode = false }: { isPdfMode?: boolean }) => {
     if (isPdfMode) {
         return (
             <div className="mb-3">
@@ -404,7 +398,7 @@ const SeatCard = ({
         return (
             <div
                 ref={seatRef}
-                className={`group flex items-center justify-center ${isPdfMode ? "w-full h-[72px]" : "w-[110px] h-[82px] lg:w-[170px] lg:h-[112px]"}`}
+                className={`group flex items-center justify-center ${isPdfMode ? "w-full h-[72px]" : "w-[88px] h-[70px] sm:w-[96px] sm:h-[74px] lg:w-[118px] lg:h-[86px]"}`}
             >
                 <div
                     className={`relative w-full h-full rounded-2xl border shadow-md ${
@@ -412,16 +406,16 @@ const SeatCard = ({
                     } ${
                         isPdfMode
                             ? "px-2 pt-1.5 pb-4"
-                            : "p-4 backdrop-blur-xl transition-transform duration-300 hover:scale-105 hover:shadow-2xl"
+                            : "px-2 py-1.5 sm:px-2.5 sm:py-2 backdrop-blur-xl transition-transform duration-300 hover:scale-105 hover:shadow-2xl"
                     }`}
                 >
                     {showEditButton ? (
                         <button
                             type="button"
                             onClick={onEdit}
-                            className="absolute top-2 right-2 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-blue-500/20 border border-blue-400/30 text-blue-200 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 z-20 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] bg-blue-500/20 border border-blue-400/30 text-blue-200 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                            <Pencil className="w-3 h-3" />
+                            <Pencil className="h-2.5 w-2.5" />
                             Edit
                         </button>
                     ) : null}
@@ -431,9 +425,9 @@ const SeatCard = ({
                         }`}
                     />
                     <div className="relative z-10 flex flex-col items-center justify-center">
-                        <X className={`${isPdfMode ? "w-4 h-4" : "w-6 h-6"} ${isLightPdf ? "text-slate-400" : "text-white/50"}`} />
+                        <X className={`${isPdfMode ? "h-4 w-4" : "h-4 w-4 sm:h-5 sm:w-5"} ${isLightPdf ? "text-slate-400" : "text-white/50"}`} />
                         <p
-                            className={`${isPdfMode ? "text-[10px]" : "text-xs"} uppercase tracking-wider font-medium ${
+                            className={`${isPdfMode ? "text-[10px]" : "text-[10px] sm:text-xs"} uppercase tracking-wider font-medium ${
                                 isLightPdf ? "text-slate-500" : "text-white/50"
                             }`}
                         >
@@ -465,7 +459,7 @@ const SeatCard = ({
         <div
             ref={seatRef}
             className={`group flex items-center justify-center ${
-                isPdfMode ? "w-full h-[72px]" : "w-[110px] h-[82px] lg:w-[170px] lg:h-[112px] perspective-1000"
+                isPdfMode ? "w-full h-[72px]" : "w-[88px] h-[70px] sm:w-[96px] sm:h-[74px] lg:w-[118px] lg:h-[86px] perspective-1000"
             }`}
             data-highlighted={isHighlighted}
         >
@@ -510,19 +504,19 @@ const SeatCard = ({
                 />
                 <div className="relative z-10 flex flex-col items-center justify-center">
                     <Monitor
-                        className={`${isPdfMode ? "w-4.5 h-4.5" : "w-6 h-6 sm:w-8 sm:h-8"} ${
+                        className={`${isPdfMode ? "h-4 w-4" : "h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6"} ${
                             isLightPdf ? (isCurrentUser ? "text-blue-600" : "text-slate-600") : isCurrentUser ? "text-blue-400" : "text-white/80"
                         }`}
                     />
                     <p
-                        className={`${isPdfMode ? "mt-1 text-[10px]" : "mt-1 text-[11px] sm:mt-2 sm:text-base"} font-bold text-center leading-tight ${
+                        className={`${isPdfMode ? "mt-1 text-[10px]" : "mt-0.5 text-[10px] sm:text-xs lg:text-sm"} max-w-full truncate px-0.5 font-bold text-center leading-tight ${
                             isLightPdf ? "text-slate-900" : "text-white drop-shadow-lg"
                         }`}
                     >
                         {userName.charAt(0).toUpperCase() + userName.slice(1)}
                     </p>
                     <div
-                        className={`${isPdfMode ? "mt-0.5 text-[9px]" : "mt-0.5 text-[10px] sm:mt-1 sm:text-xs"} font-medium italic ${
+                        className={`${isPdfMode ? "mt-0.5 text-[9px]" : "mt-0.5 text-[9px] sm:text-[10px]"} max-w-full truncate px-0.5 font-medium italic ${
                             isLightPdf ? "text-slate-600" : "text-white/80"
                         }`}
                     >
@@ -565,7 +559,7 @@ const ColumnSection = ({
             className={`rounded-2xl border ${
                 isLightPdf ? "border-slate-300 bg-white" : "border-white/20 bg-white/5"
             } ${
-                isPdfMode ? "w-full p-2" : "w-max p-3 sm:p-6 lg:p-7 backdrop-blur-xl transition-transform duration-300"
+                isPdfMode ? "w-full p-2" : "w-max p-2.5 sm:p-4 lg:p-5 backdrop-blur-xl transition-transform duration-300"
             }`}
         >
             <div className={`flex items-center justify-between ${isPdfMode ? "mb-2" : "mb-4"}`}>
@@ -580,18 +574,18 @@ const ColumnSection = ({
                     {seats} seats
                 </div>
             </div>
-            <div className={isPdfMode ? "space-y-1.5" : "space-y-4 lg:space-y-5"}>
+            <div className={isPdfMode ? "space-y-1.5" : "space-y-2.5 sm:space-y-3"}>
                 {seatMatrix.map((row, rowIndex) => (
-                    <div key={rowIndex} className={`flex items-center ${isPdfMode ? "gap-1.5" : "gap-4 lg:gap-5"}`}>
+                    <div key={rowIndex} className={`flex items-center ${isPdfMode ? "gap-1.5" : "gap-2.5 sm:gap-3"}`}>
                         <div
-                            className={`${isPdfMode ? "w-5 h-5 text-[9px]" : "h-10 w-10 shrink-0 text-base"} flex items-center justify-center rounded-full border font-bold ${
+                            className={`${isPdfMode ? "w-5 h-5 text-[9px]" : "h-8 w-8 shrink-0 text-sm"} flex items-center justify-center rounded-full border font-bold ${
                                 isLightPdf ? "bg-slate-100 border-slate-300 text-slate-700" : "bg-white/10 border-white/10 text-white/70"
                             }`}
                         >
                             {rowIndex + 1}
                         </div>
                         <div
-                            className={`grid ${isPdfMode ? "gap-1" : "gap-2.5 lg:gap-4 [--seat-card-width:110px] lg:[--seat-card-width:170px]"}`}
+                            className={`grid ${isPdfMode ? "gap-1" : "gap-1.5 sm:gap-2.5 [--seat-card-width:88px] sm:[--seat-card-width:96px] lg:[--seat-card-width:118px]"}`}
                             style={{
                                 gridTemplateColumns: isPdfMode
                                     ? `repeat(${seats}, minmax(0, 1fr))`
@@ -1039,7 +1033,7 @@ const SeatingArrangementPage = () => {
                 </div>
 
                 <div className="sticky top-16 sm:top-20 z-20 mb-4">
-                    <RoomFacingIndicator classroomName={selectedClassroom} />
+                    <RoomFacingIndicator />
                 </div>
 
                 <div className="max-w-full overflow-x-auto overflow-y-hidden pb-8 hide-scrollbar">
@@ -1085,7 +1079,7 @@ const SeatingArrangementPage = () => {
                                 </div>
                             </div>
 
-                            <RoomFacingIndicator classroomName={page.classroomName} isPdfMode />
+                            <RoomFacingIndicator isPdfMode />
 
                             <div className="overflow-hidden rounded-lg border border-slate-300">
                                 <table className="w-full border-collapse table-fixed text-[9px] text-slate-900">
