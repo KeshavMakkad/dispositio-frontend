@@ -130,6 +130,42 @@ const ClassroomSelector = ({ classroomNames, selectedClassroom, onChange }: Clas
     </div>
 );
 
+const RoomFacingIndicator = ({
+    classroomName,
+    isPdfMode = false,
+}: {
+    classroomName: string;
+    isPdfMode?: boolean;
+}) => {
+    if (isPdfMode) {
+        return (
+            <div className="mb-3">
+                <div className="mx-auto flex max-w-[760px] flex-col items-center gap-1">
+                    <div className="h-2 w-[80%] rounded-t-full border border-slate-400 border-b-0 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200" />
+                    <div className="w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-1.5 text-center">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-slate-700">Front of Room</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mb-5 sm:mb-7">
+            <div className="mx-auto flex max-w-3xl flex-col items-center gap-2">
+                <div className="h-3 w-[82%] rounded-t-full border border-cyan-300/30 border-b-0 bg-gradient-to-r from-cyan-400/30 via-sky-300/45 to-cyan-400/30 shadow-[0_0_28px_rgba(34,211,238,0.25)]" />
+                <div className="w-full rounded-xl border border-cyan-300/30 bg-gradient-to-r from-slate-900/80 via-cyan-950/50 to-slate-900/80 px-4 py-2 backdrop-blur-lg">
+                    <div className="flex items-center justify-center gap-3">
+                        <div className="h-px w-10 bg-cyan-300/40" />
+                        <p className="text-center text-xs font-bold uppercase tracking-[0.35em] text-cyan-200 sm:text-sm">Front of Room</p>
+                        <div className="h-px w-10 bg-cyan-300/40" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const highlightStudent = (email: string, searchQuery: string) => {
     if (!searchQuery || !email) {
         return false;
@@ -1002,6 +1038,10 @@ const SeatingArrangementPage = () => {
                     {pdfError ? <p className="text-sm text-rose-300">{pdfError}</p> : null}
                 </div>
 
+                <div className="sticky top-16 sm:top-20 z-20 mb-4">
+                    <RoomFacingIndicator classroomName={selectedClassroom} />
+                </div>
+
                 <div className="max-w-full overflow-x-auto overflow-y-hidden pb-8 hide-scrollbar">
                     <div className="flex w-max min-w-full flex-nowrap gap-6 sm:gap-8">
                     {Object.entries(arrangement).map(([columnName, columnData]) => (
@@ -1044,6 +1084,8 @@ const SeatingArrangementPage = () => {
                                     <p className="text-xs text-slate-600">{page.columnName}</p>
                                 </div>
                             </div>
+
+                            <RoomFacingIndicator classroomName={page.classroomName} isPdfMode />
 
                             <div className="overflow-hidden rounded-lg border border-slate-300">
                                 <table className="w-full border-collapse table-fixed text-[9px] text-slate-900">
