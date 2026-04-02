@@ -10,16 +10,24 @@ interface ClassLayoutItem {
 interface Classroom {
     classroomId?: string;
     id?: string;
+    classroom_id?: string;
     classroomName: string;
     name?: string;
+    classroom_name?: string;
     classLayout?: ClassLayoutItem[];
+    class_layout?: ClassLayoutItem[];
     columnsCount?: number;
+    columns_count?: number;
     maxRows?: number;
+    max_rows?: number;
     totalCapacity?: number;
+    total_capacity?: number;
     set1Capacity?: number;
     set2Capacity?: number;
     setOneCapacity?: number;
     setTwoCapacity?: number;
+    set_1_capacity?: number;
+    set_2_capacity?: number;
 }
 
 interface ClassroomEditForm {
@@ -42,6 +50,20 @@ const emptyEditForm: ClassroomEditForm = {
     setTwoCapacity: "",
 };
 
+const normalizeClassroom = (classroom: Classroom): Classroom => ({
+    ...classroom,
+    classroomId: classroom.classroomId ?? classroom.id ?? classroom.classroom_id,
+    classroomName: classroom.classroomName ?? classroom.name ?? classroom.classroom_name ?? "",
+    classLayout: classroom.classLayout ?? classroom.class_layout ?? [],
+    columnsCount: classroom.columnsCount ?? classroom.columns_count,
+    maxRows: classroom.maxRows ?? classroom.max_rows,
+    totalCapacity: classroom.totalCapacity ?? classroom.total_capacity,
+    set1Capacity: classroom.set1Capacity ?? classroom.setOneCapacity ?? classroom.set_1_capacity,
+    set2Capacity: classroom.set2Capacity ?? classroom.setTwoCapacity ?? classroom.set_2_capacity,
+    setOneCapacity: classroom.setOneCapacity ?? classroom.set1Capacity ?? classroom.set_1_capacity,
+    setTwoCapacity: classroom.setTwoCapacity ?? classroom.set2Capacity ?? classroom.set_2_capacity,
+});
+
 const ClassroomListPage = () => {
     const [classrooms, setClassrooms] = useState<Classroom[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +75,8 @@ const ClassroomListPage = () => {
     const [modalError, setModalError] = useState<string | null>(null);
     const [isModalSubmitting, setIsModalSubmitting] = useState(false);
 
-    const getClassroomIdentifier = (classroom: Classroom) => classroom.classroomId ?? classroom.id ?? classroom.classroomName;
+    const getClassroomIdentifier = (classroom: Classroom) => classroom.classroomId ?? classroom.id ?? classroom.classroom_id ?? classroom.classroomName;
+    const getClassroomApiId = (classroom: Classroom) => classroom.classroomId ?? classroom.id ?? classroom.classroom_id;
     const getSetOneCapacity = (classroom: Classroom) => classroom.set1Capacity ?? classroom.setOneCapacity ?? 0;
     const getSetTwoCapacity = (classroom: Classroom) => classroom.set2Capacity ?? classroom.setTwoCapacity ?? 0;
     const getTotalCapacity = (classroom: Classroom) =>
@@ -66,8 +89,8 @@ const ClassroomListPage = () => {
 
             try {
                 const response = await apiClient.get<Classroom[]>("/classroom/list");
-                console.log("Classroom list response:", response.data);
-                setClassrooms(response.data ?? []);
+                const normalized = (response.data ?? []).map((item) => normalizeClassroom(item));
+                setClassrooms(normalized);
             } catch {
                 setError("Could not fetch classrooms.");
             } finally {
@@ -137,7 +160,14 @@ const ClassroomListPage = () => {
         setIsModalSubmitting(true);
 
         try {
-            await apiClient.put(`/classroom/${encodeURIComponent(getClassroomIdentifier(editingClassroom))}`, {
+            const classroomId = getClassroomApiId(editingClassroom);
+
+            if (!classroomId) {
+                setModalError("This classroom is missing an id and cannot be updated.");
+                return;
+            }
+
+            await apiClient.put(`/classroom/${encodeURIComponent(classroomId)}`, {
                 name: editForm.name.trim(),
                 classLayout: parsedLayout,
                 columnsCount: Number(editForm.columnsCount),
@@ -185,7 +215,14 @@ const ClassroomListPage = () => {
         setIsModalSubmitting(true);
 
         try {
-            await apiClient.delete(`/classroom/${encodeURIComponent(getClassroomIdentifier(deletingClassroom))}`);
+            const classroomId = getClassroomApiId(deletingClassroom);
+
+            if (!classroomId) {
+                setModalError("This classroom is missing an id and cannot be deleted.");
+                return;
+            }
+
+            await apiClient.delete(`/classroom/${encodeURIComponent(classroomId)}`);
             setClassrooms((prev) =>
                 prev.filter((classroom) => getClassroomIdentifier(classroom) !== getClassroomIdentifier(deletingClassroom)),
             );
