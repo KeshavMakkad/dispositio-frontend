@@ -2,6 +2,7 @@ import {
     useCallback,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 import type { ReactNode } from "react";
@@ -73,6 +74,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const navigateRef = useRef(navigate);
+    const lastSyncedAccessTokenRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        navigateRef.current = navigate;
+    }, [navigate]);
 
     const clearError = useCallback(() => {
         setError(null);
@@ -99,6 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     const syncedUser = await applySupabaseUser(accessToken);
                     if (isMounted) {
                         setUser(syncedUser);
+                        lastSyncedAccessTokenRef.current = accessToken;
                     }
                     return;
                 } catch (syncError) {
@@ -137,6 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     const syncedUser = await applySupabaseUser(latestSessionData.session?.access_token);
                     if (isMounted) {
                         setUser(syncedUser);
+                        lastSyncedAccessTokenRef.current = latestSessionData.session?.access_token ?? null;
                     }
                 } catch (syncError) {
                     if (isMounted) {
@@ -166,7 +175,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             setError("Your session has expired. Please login again.");
             setIsLoading(false);
-            navigate("/login", { replace: true });
+            lastSyncedAccessTokenRef.current = null;
+            navigateRef.current("/login", { replace: true });
         };
 
         const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -178,14 +188,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setUser(null);
                 setError(null);
                 setIsLoading(false);
+                lastSyncedAccessTokenRef.current = null;
                 return;
             }
 
-            if (event === "TOKEN_REFRESHED") {
+            if (event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
                 return;
             }
 
-            if (!session?.user) {
+            if (!session?.user || !session.access_token) {
+                return;
+            }
+
+            if (lastSyncedAccessTokenRef.current === session.access_token) {
                 return;
             }
 
@@ -196,6 +211,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const syncedUser = await applySupabaseUser(session.access_token);
                 if (isMounted) {
                     setUser(syncedUser);
+                    lastSyncedAccessTokenRef.current = session.access_token;
                 }
             } catch (syncError) {
                 if (isMounted) {
@@ -216,7 +232,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             listener.subscription.unsubscribe();
             window.removeEventListener("auth:expired", onAuthExpired);
         };
-    }, [fetchCurrentUser, navigate]);
+    }, [fetchCurrentUser]);
 
     const signInWithGoogle = useCallback(async () => {
         setError(null);
@@ -251,6 +267,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } finally {
             await supabase.auth.signOut();
             setUser(null);
+            lastSyncedAccessTokenRef.current = null;
             navigate("/login", { replace: true });
             setIsLoading(false);
         }
