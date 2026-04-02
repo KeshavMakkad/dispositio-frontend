@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../api/client";
+import {
+    formatDateTimeIst,
+    toApiDateTimeIst,
+    toDateTimeLocalValueFromApiIst,
+} from "../utils/dateTime";
 
 interface SeatingListResponse {
     seatingId: string;
@@ -20,21 +25,10 @@ const DashboardPage = () => {
     const [modalError, setModalError] = useState<string | null>(null);
     const [isModalSubmitting, setIsModalSubmitting] = useState(false);
 
-    const toDateTimeLocalValue = (value: string) => {
-        const parsed = new Date(value);
-        if (Number.isNaN(parsed.getTime())) {
-            return "";
-        }
-
-        const timezoneOffset = parsed.getTimezoneOffset();
-        const localDate = new Date(parsed.getTime() - timezoneOffset * 60 * 1000);
-        return localDate.toISOString().slice(0, 16);
-    };
-
     const openEditModal = (plan: SeatingListResponse) => {
         setEditingPlan(plan);
         setEditExamName(plan.examName);
-        setEditExamTime(toDateTimeLocalValue(plan.examTime));
+        setEditExamTime(toDateTimeLocalValueFromApiIst(plan.examTime));
         setModalError(null);
     };
 
@@ -63,13 +57,14 @@ const DashboardPage = () => {
         setIsModalSubmitting(true);
 
         try {
-            const parsedExamTime = new Date(editExamTime);
-            if (Number.isNaN(parsedExamTime.getTime())) {
+            const normalizedExamTime = toApiDateTimeIst(editExamTime);
+            const parsedExamTime = new Date(normalizedExamTime);
+            if (!normalizedExamTime || Number.isNaN(parsedExamTime.getTime())) {
                 setModalError("Exam time is invalid.");
                 return;
             }
 
-            const nextExamTime = parsedExamTime.toISOString();
+            const nextExamTime = normalizedExamTime;
 
             await apiClient.put(`/seating/${editingPlan.seatingId}/info`, {
                 examName: editExamName.trim(),
@@ -181,7 +176,7 @@ const DashboardPage = () => {
                                             className="cursor-pointer transition hover:bg-slate-800/60"
                                         >
                                             <td className="px-4 py-3">{plan.examName}</td>
-                                            <td className="px-4 py-3">{new Date(plan.examTime).toLocaleString()}</td>
+                                            <td className="px-4 py-3">{formatDateTimeIst(plan.examTime)}</td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
                                                     <button

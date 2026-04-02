@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { apiClient } from "../api/client";
+import { toApiDateTimeIst } from "../utils/dateTime";
 
 interface SeatingResponse {
     [key: string]: unknown;
@@ -199,13 +200,14 @@ const SeatingGenerationPage = () => {
 
         const formData = new FormData();
         formData.append("examName", examName.trim());
-        const parsedExamTime = new Date(examTime);
-        if (Number.isNaN(parsedExamTime.getTime())) {
+        const normalizedExamTime = toApiDateTimeIst(examTime);
+        const parsedExamTime = new Date(normalizedExamTime);
+        if (!normalizedExamTime || Number.isNaN(parsedExamTime.getTime())) {
             setError("Please provide a valid exam time.");
             return;
         }
 
-        formData.append("examTime", parsedExamTime.toISOString());
+        formData.append("examTime", normalizedExamTime);
         formData.append("classroomList", JSON.stringify(selectedClassrooms));
         formData.append("student_list_one", fileOne);
         if (fileTwo) {

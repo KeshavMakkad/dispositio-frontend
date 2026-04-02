@@ -15,6 +15,7 @@ import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import { apiClient } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { formatDateTimeIst, formatTimeIst } from "../utils/dateTime";
 
 type SeatValue = string;
 type SeatMatrix = SeatValue[][];
@@ -616,40 +617,11 @@ const ColumnSection = ({
 };
 
 const formatTime = (isoDateTime?: string) => {
-    if (!isoDateTime) {
-        return "-";
-    }
-
-    const parsed = new Date(isoDateTime);
-    if (Number.isNaN(parsed.getTime())) {
-        return isoDateTime;
-    }
-
-    return parsed.toLocaleString("en-US", {
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-    });
+    return formatTimeIst(isoDateTime);
 };
 
 const formatDateTimeForPrint = (isoDateTime?: string) => {
-    if (!isoDateTime) {
-        return "-";
-    }
-
-    const parsed = new Date(isoDateTime);
-    if (Number.isNaN(parsed.getTime())) {
-        return isoDateTime;
-    }
-
-    return parsed.toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-    });
+    return formatDateTimeIst(isoDateTime);
 };
 
 const getSeatCompactDisplay = (seatValue: string) => {
