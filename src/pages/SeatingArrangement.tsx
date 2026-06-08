@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
+    AlertTriangle,
+    CheckCircle2,
     ChevronDown,
     ChevronRight,
     Clock,
@@ -16,6 +18,12 @@ import { jsPDF } from "jspdf";
 import { apiClient } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { formatDateTimeIst, formatTimeIst } from "../utils/dateTime";
+
+interface PrintStatus {
+    isPrinted: boolean;
+    printedAt: string | null;
+    needsReprint: boolean;
+}
 
 type SeatValue = string;
 type SeatMatrix = SeatValue[][];
@@ -685,7 +693,10 @@ const SeatingArrangementPage = () => {
     const [seatModalError, setSeatModalError] = useState<string | null>(null);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const [pdfError, setPdfError] = useState<string | null>(null);
+    const [printStatus, setPrintStatus] = useState<PrintStatus | null>(null);
     const pdfContainerRef = useRef<HTMLDivElement | null>(null);
+
+    const canMarkPrinted = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
     useEffect(() => {
         if (!seatingId) {
@@ -731,6 +742,20 @@ const SeatingArrangementPage = () => {
             setError("Failed to load seating arrangement.");
             setIsLoading(false);
         });
+    }, [seatingId]);
+
+    useEffect(() => {
+        if (!seatingId) {
+            return;
+        }
+
+        apiClient
+            .get<PrintStatus>(`/seating/${seatingId}/print-status`)
+            .then((response) => setPrintStatus(response.data))
+            .catch((statusError) => {
+                // Non-fatal: the badge just won't show if status can't be fetched.
+                console.error("Could not load print status", statusError);
+            });
     }, [seatingId]);
 
     useEffect(() => {
@@ -901,6 +926,18 @@ const SeatingArrangementPage = () => {
             window.setTimeout(() => {
                 URL.revokeObjectURL(blobUrl);
             }, 1000);
+
+            // Mark the plan as printed in the backend. Only admins/super-admins
+            // are allowed to; for viewers we skip the call to avoid a 403.
+            if (canMarkPrinted) {
+                try {
+                    const statusResponse = await apiClient.post<PrintStatus>(`/seating/${seatingId}/print`);
+                    setPrintStatus(statusResponse.data);
+                } catch (markError) {
+                    // Non-fatal: the PDF already downloaded successfully.
+                    console.error("Could not mark seating as printed", markError);
+                }
+            }
         } catch (downloadError) {
             console.error("Failed to generate seating PDF", downloadError);
             const message = downloadError instanceof Error ? downloadError.message : "Unknown PDF generation error";
@@ -998,8 +1035,23 @@ const SeatingArrangementPage = () => {
                                 <Download className="w-4 h-4" />
                                 {isGeneratingPdf ? "Generating PDF..." : "Download PDF (All Classrooms)"}
                             </button>
+                            {printStatus?.isPrinted ? (
+                                <span className="flex-none inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-300">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Printed
+                                </span>
+                            ) : null}
                         </div>
                     </div>
+
+                    {printStatus?.needsReprint ? (
+                        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-300">
+                            <AlertTriangle className="w-4 h-4 flex-none" />
+                            <span>
+                                This plan was printed earlier and has changed since. Please review the updates and reprint.
+                            </span>
+                        </div>
+                    ) : null}
 
                     {pdfError ? <p className="text-sm text-rose-300">{pdfError}</p> : null}
                 </div>

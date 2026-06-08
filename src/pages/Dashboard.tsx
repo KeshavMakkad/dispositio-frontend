@@ -11,7 +11,34 @@ interface SeatingListResponse {
     seatingId: string;
     examName: string;
     examTime: string;
+    isPrinted?: boolean;
+    printedAt?: string | null;
+    needsReprint?: boolean;
 }
+
+const PrintStatusBadge = ({ plan }: { plan: SeatingListResponse }) => {
+    if (plan.needsReprint) {
+        return (
+            <span className="inline-flex rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300 ring-1 ring-amber-500/30">
+                Reprint needed
+            </span>
+        );
+    }
+
+    if (plan.isPrinted) {
+        return (
+            <span className="inline-flex rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-emerald-500/30">
+                Printed
+            </span>
+        );
+    }
+
+    return (
+        <span className="inline-flex rounded-full bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 ring-1 ring-slate-600/40">
+            Not printed
+        </span>
+    );
+};
 
 const DashboardPage = () => {
     const navigate = useNavigate();
@@ -152,6 +179,7 @@ const DashboardPage = () => {
                             <tr>
                                 <th className="px-4 py-3 text-left font-medium">Exam Name</th>
                                 <th className="px-4 py-3 text-left font-medium">Exam Time</th>
+                                <th className="px-4 py-3 text-left font-medium">Status</th>
                                 <th className="px-4 py-3 text-left font-medium">Actions</th>
                             </tr>
                         </thead>
@@ -177,6 +205,9 @@ const DashboardPage = () => {
                                         >
                                             <td className="px-4 py-3">{plan.examName}</td>
                                             <td className="px-4 py-3">{formatDateTimeIst(plan.examTime)}</td>
+                                            <td className="px-4 py-3">
+                                                <PrintStatusBadge plan={plan} />
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
                                                     <button
@@ -207,7 +238,7 @@ const DashboardPage = () => {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={3} className="px-4 py-6 text-center text-slate-400">
+                                    <td colSpan={4} className="px-4 py-6 text-center text-slate-400">
                                         No seating plans returned by the backend.
                                     </td>
                                 </tr>
