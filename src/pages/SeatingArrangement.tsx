@@ -898,7 +898,7 @@ const SeatingArrangementPage = () => {
             downloadLink.click();
             downloadLink.remove();
 
-            await apiClient.put(`/seating/${seatingId}/print-status`);
+            await apiClient.put(`/seating/${seatingId}/info`, { isPrinted: true });
             
             window.setTimeout(() => {
                 URL.revokeObjectURL(blobUrl);
