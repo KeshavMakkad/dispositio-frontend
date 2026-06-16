@@ -898,6 +898,8 @@ const SeatingArrangementPage = () => {
             downloadLink.click();
             downloadLink.remove();
 
+            await apiClient.put(`/seating/${seatingId}/info`, { isPrinted: true });
+            
             window.setTimeout(() => {
                 URL.revokeObjectURL(blobUrl);
             }, 1000);
